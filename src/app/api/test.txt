@@ -3,27 +3,28 @@ echo "Edward fights Michael on a battlefield in the war of blahblah"| python api
 [
   {
     "Scene": 1,
-    "Description": "Wide shot, dramatic lighting: Two armies clash on a muddy battlefield under dark storm clouds, smoke rising from distant fires",
+    "Description": "Wide shot, cinematic war film style: A smoky battlefield littered with debris under overcast skies, dramatic lighting casting long shadows across the muddy terrain of the blahblah war",
     "Dialogue": ""
   },
   {
     "Scene": 2,
-    "Description": "Medium shot, gritty war film style: Edward charges through the chaos, sword raised, his armor splattered with mud and blood",
-    "Dialogue": "Edward shouts over the battle noise: 'Michael! Face me, you coward!'"
+    "Description": "Medium shot, gritty realism: Edward, a battle-worn soldier with dark hair and determined eyes, grips his weapon tightly as he spots his target across the field",
+    "Dialogue": "Edward shouts across the battlefield: 'Michael! This ends today!'"
   },
   {
     "Scene": 3,
-    "Description": "Close-up, intense lighting: Michael turns, his scarred face twisted with rage, gripping his weapon tightly as rain begins to fall",
-    "Dialogue": "Michael snarls: 'You should have stayed home, Edward. This ends today.'"
+    "Description": "Close-up, intense lighting: Michael, a scarred veteran with piercing blue eyes and weathered face, turns to face Edward with a grim expression of recognition",
+    "Dialogue": "Michael responds coldly: 'You should have stayed down, Edward. Now you'll die like the rest.'"
   },
   {
     "Scene": 4,
-    "Description": "Dynamic wide shot, cinematic style: The two warriors circle each other in a clearing, weapons clashing as lightning illuminates their deadly dance",
+    "Description": "Dynamic action shot, high contrast lighting: The two warriors charge toward each other through smoke and chaos, weapons raised, mud splashing beneath their boots",
     "Dialogue": ""
   },
   {
     "Scene": 5,
-    "Description": "Extreme close-up, dramatic shadows: Sweat and rain mix on Edward's determined face as he parries a devastating blow from Michael's blade",
-    "Dialogue": "Edward grunts through gritted teeth: 'I won't let you destroy everything we've built!'"
+    "Description": "Close combat sequence, dramatic shadows: Edward and Michael clash in brutal hand-to-hand combat, their faces strained with effort and fury amid the war's devastation",
+    "Dialogue": "Edward grunts through gritted teeth: 'This is for everything you've done!' Michael snarls back: 'You know nothing about sacrifice!'"
   }
 ]
+
