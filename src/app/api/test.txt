@@ -1,1 +1,29 @@
 echo "Edward fights Michael on a battlefield in the war of blahblah"| python api.py
+
+[
+  {
+    "Scene": 1,
+    "Description": "Wide shot, dramatic lighting: Two armies clash on a muddy battlefield under dark storm clouds, smoke rising from distant fires",
+    "Dialogue": ""
+  },
+  {
+    "Scene": 2,
+    "Description": "Medium shot, gritty war film style: Edward charges through the chaos, sword raised, his armor splattered with mud and blood",
+    "Dialogue": "Edward shouts over the battle noise: 'Michael! Face me, you coward!'"
+  },
+  {
+    "Scene": 3,
+    "Description": "Close-up, intense lighting: Michael turns, his scarred face twisted with rage, gripping his weapon tightly as rain begins to fall",
+    "Dialogue": "Michael snarls: 'You should have stayed home, Edward. This ends today.'"
+  },
+  {
+    "Scene": 4,
+    "Description": "Dynamic wide shot, cinematic style: The two warriors circle each other in a clearing, weapons clashing as lightning illuminates their deadly dance",
+    "Dialogue": ""
+  },
+  {
+    "Scene": 5,
+    "Description": "Extreme close-up, dramatic shadows: Sweat and rain mix on Edward's determined face as he parries a devastating blow from Michael's blade",
+    "Dialogue": "Edward grunts through gritted teeth: 'I won't let you destroy everything we've built!'"
+  }
+]
