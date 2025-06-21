@@ -1,0 +1,1 @@
+echo "Edward fights Michael on a battlefield in the war of blahblah"| python api.py
