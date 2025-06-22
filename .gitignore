@@ -33,9 +33,15 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 claude-env
+venv/
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+character_images/
+scene_images/
+story_elements.json
+__pycache__/
