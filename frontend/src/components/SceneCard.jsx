@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-
+// src/components/SceneCard.jsx
 export default function SceneCard({
   scene,
   index,
@@ -43,7 +42,6 @@ export default function SceneCard({
             onClick={() => onAccept(index)}
             disabled={disabled}
             className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50"
-            variant="default"
           >
             满意
           </button>
@@ -51,7 +49,6 @@ export default function SceneCard({
             onClick={() => onRegenerate(index)}
             disabled={disabled}
             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 disabled:opacity-50"
-            variant="destructive"
           >
             不满意
           </button>
@@ -62,3 +59,4 @@ export default function SceneCard({
     </div>
   );
 }
+
