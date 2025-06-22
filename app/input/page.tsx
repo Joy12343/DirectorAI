@@ -1,12 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Sparkles, Loader2 } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, Sparkles, Loader2 } from "lucide-react"
 
 export default function InputPage() {
   const [story, setStory] = useState("")
@@ -28,14 +25,15 @@ export default function InputPage() {
 
       if (response.ok) {
         const data = await response.json()
-        // Store the generated data in localStorage for now
         localStorage.setItem("storyData", JSON.stringify(data))
         router.push("/edit")
       } else {
         console.error("Failed to generate story")
+        alert("Failed to generate story. Please try again.")
       }
     } catch (error) {
       console.error("Error generating story:", error)
+      alert("Error generating story. Please check if backend services are running.")
     } finally {
       setIsGenerating(false)
     }
@@ -44,13 +42,12 @@ export default function InputPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="flex items-center mb-8">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+            <button className="text-white hover:bg-white/10 px-3 py-2 rounded-lg flex items-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
-            </Button>
+            </button>
           </Link>
         </div>
 
@@ -62,53 +59,48 @@ export default function InputPage() {
             </p>
           </div>
 
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6">
+            <div className="mb-6">
+              <div className="flex items-center text-white mb-4">
                 <Sparkles className="w-5 h-5 mr-2 text-purple-400" />
                 Story Input
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="text-white text-sm font-medium mb-2 block">Your Story</label>
-                <Textarea
-                  placeholder="Enter your story here... For example: 'Two teenagers play basketball on a neighborhood court. Edward is confident and skilled, while Michael is determined to prove himself. The game becomes intense as they compete against each other.'"
-                  value={story}
-                  onChange={(e) => setStory(e.target.value)}
-                  className="min-h-[200px] bg-white/5 border-white/20 text-white placeholder:text-gray-400 resize-none"
-                />
               </div>
+              <textarea
+                placeholder="Enter your story here... For example: 'Two teenagers play basketball on a neighborhood court. Edward is confident and skilled, while Michael is determined to prove himself.'"
+                value={story}
+                onChange={(e) => setStory(e.target.value)}
+                className="w-full min-h-[200px] bg-white/5 border border-white/20 text-white placeholder:text-gray-400 rounded-lg p-4 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
 
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                <h3 className="text-blue-300 font-medium mb-2">Tips for better results:</h3>
-                <ul className="text-blue-200 text-sm space-y-1">
-                  <li>• Include character descriptions and personalities</li>
-                  <li>• Describe the setting and atmosphere</li>
-                  <li>• Mention key actions or conflicts</li>
-                  <li>• Keep it concise but detailed (2-3 paragraphs work well)</li>
-                </ul>
-              </div>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
+              <h3 className="text-blue-300 font-medium mb-2">Tips for better results:</h3>
+              <ul className="text-blue-200 text-sm space-y-1">
+                <li>• Include character descriptions and personalities</li>
+                <li>• Describe the setting and atmosphere</li>
+                <li>• Mention key actions or conflicts</li>
+                <li>• Keep it concise but detailed (2-3 paragraphs work well)</li>
+              </ul>
+            </div>
 
-              <Button
-                onClick={handleGenerate}
-                disabled={!story.trim() || isGenerating}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white py-3 text-lg font-semibold rounded-lg"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Generating Story...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Generate Story
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+            <button
+              onClick={handleGenerate}
+              disabled={!story.trim() || isGenerating}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white py-3 text-lg font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Generating Story...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Generate Story
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

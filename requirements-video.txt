@@ -1,0 +1,9 @@
+google-genai
+anthropic
+Pillow
+flask
+flask-cors
+moviepy
+requests
+python-dotenv
+cloudinary

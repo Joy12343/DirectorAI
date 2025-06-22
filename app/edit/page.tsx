@@ -1,15 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { ArrowLeft, Users, Film, Edit3, Play, Loader2 } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, Users, Film, Play, Loader2, RefreshCw } from "lucide-react"
 import Image from "next/image"
-import { saveImages, loadImages } from "@/lib/storage"
 
 interface Character {
   Name: string
@@ -36,166 +31,26 @@ export default function EditPage() {
   const [characterImages, setCharacterImages] = useState<Record<string, string>>({})
   const [sceneImages, setSceneImages] = useState<Record<number, string>>({})
   const [generationProgress, setGenerationProgress] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
+  const [generationLog, setGenerationLog] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
     const data = localStorage.getItem("storyData")
     if (data) {
       setStoryData(JSON.parse(data))
-      // Load existing images from IndexedDB
-      loadStoredImages()
     } else {
       router.push("/input")
     }
   }, [router])
 
-  const loadStoredImages = async () => {
+  const addToLog = (message: string) => {
+    setGenerationLog((prev) => [...prev, message])
+    console.log(message)
+  }
+
+  const generateCharacterImage = async (character: Character) => {
     try {
-      const [storedCharacterImages, storedSceneImages] = await Promise.all([
-        loadImages("characterImages"),
-        loadImages("sceneImages"),
-      ])
-
-      if (storedCharacterImages) {
-        setCharacterImages(storedCharacterImages)
-      }
-      if (storedSceneImages) {
-        setSceneImages(storedSceneImages)
-      }
-    } catch (error) {
-      console.error("Failed to load stored images:", error)
-    }
-  }
-
-  const updateCharacter = (index: number, field: keyof Character, value: string) => {
-    if (!storyData) return
-    const newData = { ...storyData }
-    newData.Characters[index][field] = value
-    setStoryData(newData)
-    localStorage.setItem("storyData", JSON.stringify(newData))
-  }
-
-  const updateScene = (index: number, field: keyof Scene, value: string | number) => {
-    if (!storyData) return
-    const newData = { ...storyData }
-    newData.Scenes[index][field] = value as any
-    setStoryData(newData)
-    localStorage.setItem("storyData", JSON.stringify(newData))
-  }
-
-  const generateImages = async () => {
-    if (!storyData) return
-
-    setIsGeneratingImages(true)
-    setGenerationProgress("Starting image generation...")
-
-    try {
-      // Generate character images first
-      setGenerationProgress("Generating character images...")
-      const newCharacterImages: Record<string, string> = { ...characterImages }
-
-      for (const character of storyData.Characters) {
-        // Skip if image already exists
-        if (characterImages[character.Name]) {
-          continue
-        }
-
-        try {
-          setGenerationProgress(`Generating image for ${character.Name}...`)
-
-          const response = await fetch("/api/generate-character-images", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ character }),
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            if (data.base64_image) {
-              newCharacterImages[character.Name] = `data:image/png;base64,${data.base64_image}`
-              console.log(`Generated ${data.type} image for ${character.Name}`)
-            }
-          } else {
-            const errorText = await response.text()
-            console.error(`Failed to generate character image for ${character.Name}:`, errorText)
-            newCharacterImages[character.Name] =
-              `/placeholder.svg?height=300&width=200&text=${encodeURIComponent(character.Name)}`
-          }
-
-          // Update character images immediately so user can see progress
-          setCharacterImages((prev) => ({ ...prev, [character.Name]: newCharacterImages[character.Name] }))
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-        } catch (error) {
-          console.error(`Failed to generate image for ${character.Name}:`, error)
-          newCharacterImages[character.Name] =
-            `/placeholder.svg?height=300&width=200&text=${encodeURIComponent(character.Name)}`
-          setCharacterImages((prev) => ({ ...prev, [character.Name]: newCharacterImages[character.Name] }))
-        }
-      }
-
-      // Generate scene images
-      setGenerationProgress("Generating scene images...")
-      const newSceneImages: Record<number, string> = { ...sceneImages }
-
-      for (const scene of storyData.Scenes) {
-        // Skip if image already exists
-        if (sceneImages[scene.Scene]) {
-          continue
-        }
-
-        try {
-          setGenerationProgress(`Generating image for Scene ${scene.Scene}...`)
-
-          const response = await fetch("/api/generate-images", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ description: scene.Description }),
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            if (data.base64_image) {
-              newSceneImages[scene.Scene] = `data:image/png;base64,${data.base64_image}`
-              console.log(`Generated ${data.type} image for Scene ${scene.Scene}`)
-            }
-          } else {
-            const errorText = await response.text()
-            console.error(`Failed to generate scene ${scene.Scene}:`, errorText)
-            newSceneImages[scene.Scene] = `/placeholder.svg?height=200&width=350&text=Scene ${scene.Scene}`
-          }
-
-          setSceneImages((prev) => ({ ...prev, [scene.Scene]: newSceneImages[scene.Scene] }))
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-        } catch (error) {
-          console.error(`Failed to generate image for scene ${scene.Scene}:`, error)
-          newSceneImages[scene.Scene] = `/placeholder.svg?height=200&width=350&text=Scene ${scene.Scene}`
-          setSceneImages((prev) => ({ ...prev, [scene.Scene]: newSceneImages[scene.Scene] }))
-        }
-      }
-
-      setGenerationProgress("Saving images...")
-      // Save images to IndexedDB
-      await saveImages("characterImages", newCharacterImages)
-      await saveImages("sceneImages", newSceneImages)
-
-      setGenerationProgress("Image generation complete!")
-    } catch (error) {
-      console.error("Error generating images:", error)
-      setGenerationProgress("Error generating images")
-    } finally {
-      setIsGeneratingImages(false)
-      setTimeout(() => setGenerationProgress(""), 3000)
-    }
-  }
-
-  const generateSingleCharacterImage = async (character: Character) => {
-    try {
-      setGenerationProgress(`Generating image for ${character.Name}...`)
+      addToLog(`🎨 Generating image for ${character.Name}...`)
 
       const response = await fetch("/api/generate-character-images", {
         method: "POST",
@@ -208,46 +63,129 @@ export default function EditPage() {
       if (response.ok) {
         const data = await response.json()
         if (data.base64_image) {
-          const newImage = `data:image/png;base64,${data.base64_image}`
-          setCharacterImages((prev) => ({
-            ...prev,
-            [character.Name]: newImage,
-          }))
-
-          // Save to IndexedDB
-          const updatedImages = { ...characterImages, [character.Name]: newImage }
-          await saveImages("characterImages", updatedImages)
-
-          console.log(`Generated ${data.type} image for ${character.Name}`)
+          const imageUrl = `data:image/png;base64,${data.base64_image}`
+          setCharacterImages((prev) => ({ ...prev, [character.Name]: imageUrl }))
+          addToLog(`✅ Generated ${data.type || "AI"} image for ${character.Name}`)
+          return imageUrl
         }
       } else {
         const errorText = await response.text()
-        console.error(`Failed to generate character image for ${character.Name}:`, errorText)
+        addToLog(`❌ Failed to generate image for ${character.Name}: ${errorText}`)
       }
     } catch (error) {
-      console.error(`Failed to generate image for ${character.Name}:`, error)
+      addToLog(`❌ Error generating image for ${character.Name}: ${error}`)
+    }
+
+    // Fallback placeholder
+    const placeholder = `/placeholder.svg?height=300&width=200&text=${encodeURIComponent(character.Name)}`
+    setCharacterImages((prev) => ({ ...prev, [character.Name]: placeholder }))
+    return placeholder
+  }
+
+  const generateSceneImage = async (scene: Scene) => {
+    try {
+      addToLog(`🎬 Generating image for Scene ${scene.Scene}...`)
+
+      const response = await fetch("/api/generate-images", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ description: scene.Description }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.base64_image) {
+          const imageUrl = `data:image/png;base64,${data.base64_image}`
+          setSceneImages((prev) => ({ ...prev, [scene.Scene]: imageUrl }))
+          addToLog(`✅ Generated ${data.type || "AI"} image for Scene ${scene.Scene}`)
+          return imageUrl
+        }
+      } else {
+        const errorText = await response.text()
+        addToLog(`❌ Failed to generate image for Scene ${scene.Scene}: ${errorText}`)
+      }
+    } catch (error) {
+      addToLog(`❌ Error generating image for Scene ${scene.Scene}: ${error}`)
+    }
+
+    // Fallback placeholder
+    const placeholder = `/placeholder.svg?height=200&width=350&text=Scene ${scene.Scene}`
+    setSceneImages((prev) => ({ ...prev, [scene.Scene]: placeholder }))
+    return placeholder
+  }
+
+  const generateAllImages = async () => {
+    if (!storyData) return
+
+    setIsGeneratingImages(true)
+    setGenerationProgress("Starting image generation...")
+    setGenerationLog([])
+
+    try {
+      addToLog("🚀 Starting image generation process...")
+
+      // Generate character images
+      if (storyData.Characters.length > 0) {
+        setGenerationProgress("Generating character images...")
+        addToLog(`👥 Generating images for ${storyData.Characters.length} characters...`)
+
+        for (const character of storyData.Characters) {
+          if (!characterImages[character.Name]) {
+            await generateCharacterImage(character)
+            // Small delay between requests
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+          } else {
+            addToLog(`⏭️ Skipping ${character.Name} (already generated)`)
+          }
+        }
+      }
+
+      // Generate scene images
+      if (storyData.Scenes.length > 0) {
+        setGenerationProgress("Generating scene images...")
+        addToLog(`🎬 Generating images for ${storyData.Scenes.length} scenes...`)
+
+        for (const scene of storyData.Scenes) {
+          if (!sceneImages[scene.Scene]) {
+            await generateSceneImage(scene)
+            // Small delay between requests
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+          } else {
+            addToLog(`⏭️ Skipping Scene ${scene.Scene} (already generated)`)
+          }
+        }
+      }
+
+      setGenerationProgress("Image generation complete!")
+      addToLog("🎉 All images generated successfully!")
+    } catch (error) {
+      addToLog(`❌ Error during image generation: ${error}`)
+      setGenerationProgress("Error generating images")
     } finally {
-      setGenerationProgress("")
+      setIsGeneratingImages(false)
+      setTimeout(() => setGenerationProgress(""), 3000)
     }
   }
 
-  const proceedToFrames = async () => {
-    setIsSaving(true)
-    try {
-      // Save images to IndexedDB before proceeding
-      await saveImages("characterImages", characterImages)
-      await saveImages("sceneImages", sceneImages)
+  const generateSingleCharacterImage = async (character: Character) => {
+    setGenerationProgress(`Generating image for ${character.Name}...`)
+    await generateCharacterImage(character)
+    setGenerationProgress("")
+  }
 
-      // Store a flag to indicate images are saved
-      localStorage.setItem("imagesReady", "true")
+  const generateSingleSceneImage = async (scene: Scene) => {
+    setGenerationProgress(`Generating image for Scene ${scene.Scene}...`)
+    await generateSceneImage(scene)
+    setGenerationProgress("")
+  }
 
-      router.push("/frames")
-    } catch (error) {
-      console.error("Failed to save images:", error)
-      alert("Failed to save images. Please try again.")
-    } finally {
-      setIsSaving(false)
-    }
+  const proceedToFrames = () => {
+    // Save images to localStorage for the frames page
+    localStorage.setItem("characterImages", JSON.stringify(characterImages))
+    localStorage.setItem("sceneImages", JSON.stringify(sceneImages))
+    router.push("/frames")
   }
 
   if (!storyData) {
@@ -264,31 +202,20 @@ export default function EditPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Link href="/input">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+            <button className="text-white hover:bg-white/10 px-3 py-2 rounded-lg flex items-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
-            </Button>
+            </button>
           </Link>
-          <Button
+          <button
             onClick={proceedToFrames}
-            disabled={isSaving}
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
+            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg flex items-center"
           >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Continue to Frames
-              </>
-            )}
-          </Button>
+            <Play className="w-4 h-4 mr-2" />
+            Continue to Frames
+          </button>
         </div>
 
         <div className="max-w-6xl mx-auto">
@@ -297,171 +224,172 @@ export default function EditPage() {
             <p className="text-gray-300 text-lg">Refine your characters, scenes, and generate visual elements</p>
           </div>
 
-          {/* Progress indicator */}
-          {(isGeneratingImages || generationProgress) && (
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-400" />
-                  <p className="text-white">{generationProgress}</p>
+          {/* Progress and Log */}
+          {(isGeneratingImages || generationProgress || generationLog.length > 0) && (
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 mb-8">
+              <div className="text-center mb-4">
+                {isGeneratingImages && <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-400" />}
+                <p className="text-white font-semibold">{generationProgress}</p>
+              </div>
+
+              {generationLog.length > 0 && (
+                <div className="bg-black/20 rounded-lg p-4 max-h-40 overflow-y-auto">
+                  <h4 className="text-white font-medium mb-2">Generation Log:</h4>
+                  {generationLog.map((log, index) => (
+                    <p key={index} className="text-gray-300 text-sm font-mono">
+                      {log}
+                    </p>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           )}
 
           {/* Background */}
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Edit3 className="w-5 h-5 mr-2 text-purple-400" />
-                Background Setting
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={storyData.Background}
-                onChange={(e) => setStoryData({ ...storyData, Background: e.target.value })}
-                className="bg-white/5 border-white/20 text-white placeholder:text-gray-400"
-                rows={3}
-              />
-            </CardContent>
-          </Card>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 mb-8">
+            <h2 className="text-white text-xl font-semibold mb-4">Background Setting</h2>
+            <textarea
+              value={storyData.Background}
+              onChange={(e) => setStoryData({ ...storyData, Background: e.target.value })}
+              className="w-full bg-white/5 border border-white/20 text-white placeholder:text-gray-400 rounded-lg p-4 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
 
           {/* Characters */}
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center justify-between">
-                <div className="flex items-center">
-                  <Users className="w-5 h-5 mr-2 text-blue-400" />
-                  Characters ({storyData.Characters.length})
-                </div>
-                <Button
-                  onClick={generateImages}
-                  disabled={isGeneratingImages}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {isGeneratingImages ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate All Images"}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-6">
-                {storyData.Characters.map((character, index) => (
-                  <div key={index} className="space-y-4 p-4 bg-white/5 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-20 h-24 bg-gray-600 rounded-lg overflow-hidden flex items-center justify-center relative">
-                        {characterImages[character.Name] ? (
-                          <Image
-                            src={characterImages[character.Name] || "/placeholder.svg"}
-                            alt={character.Name}
-                            width={80}
-                            height={96}
-                            className="w-full h-full object-cover"
-                            unoptimized={characterImages[character.Name].startsWith("data:")}
-                          />
-                        ) : (
-                          <div className="text-center">
-                            <span className="text-gray-400 text-xs block mb-2">{character.Name}</span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => generateSingleCharacterImage(character)}
-                              disabled={isGeneratingImages || !!generationProgress}
-                              className="text-xs px-2 py-1 h-6"
-                            >
-                              Generate
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          value={character.Name}
-                          onChange={(e) => updateCharacter(index, "Name", e.target.value)}
-                          className="bg-white/5 border-white/20 text-white font-semibold mb-2"
-                          placeholder="Character Name"
-                        />
-                        <Input
-                          value={character.Role}
-                          onChange={(e) => updateCharacter(index, "Role", e.target.value)}
-                          className="bg-white/5 border-white/20 text-white text-sm"
-                          placeholder="Role"
-                        />
-                      </div>
-                    </div>
-                    <Textarea
-                      value={character.Description}
-                      onChange={(e) => updateCharacter(index, "Description", e.target.value)}
-                      className="bg-white/5 border-white/20 text-white text-sm"
-                      placeholder="Physical description..."
-                      rows={2}
-                    />
-                    <Textarea
-                      value={character.Personality}
-                      onChange={(e) => updateCharacter(index, "Personality", e.target.value)}
-                      className="bg-white/5 border-white/20 text-white text-sm"
-                      placeholder="Personality traits..."
-                      rows={2}
-                    />
-                  </div>
-                ))}
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center text-white">
+                <Users className="w-5 h-5 mr-2 text-blue-400" />
+                <h2 className="text-xl font-semibold">Characters ({storyData.Characters.length})</h2>
               </div>
-            </CardContent>
-          </Card>
+              <button
+                onClick={generateAllImages}
+                disabled={isGeneratingImages}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center disabled:opacity-50"
+              >
+                {isGeneratingImages ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Generate All Images
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {storyData.Characters.map((character, index) => (
+                <div key={index} className="bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-20 h-24 bg-gray-600 rounded-lg overflow-hidden flex items-center justify-center relative">
+                      {characterImages[character.Name] ? (
+                        <Image
+                          src={characterImages[character.Name] || "/placeholder.svg"}
+                          alt={character.Name}
+                          width={80}
+                          height={96}
+                          className="w-full h-full object-cover"
+                          unoptimized={characterImages[character.Name].startsWith("data:")}
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <span className="text-gray-400 text-xs block mb-2">{character.Name}</span>
+                          <button
+                            onClick={() => generateSingleCharacterImage(character)}
+                            disabled={isGeneratingImages || !!generationProgress}
+                            className="text-xs px-2 py-1 h-6 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
+                          >
+                            Generate
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        value={character.Name}
+                        className="w-full bg-white/5 border border-white/20 text-white font-semibold mb-2 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Character Name"
+                        readOnly
+                      />
+                      <input
+                        value={character.Role}
+                        className="w-full bg-white/5 border border-white/20 text-white text-sm px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Role"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                  <textarea
+                    value={character.Description}
+                    className="w-full bg-white/5 border border-white/20 text-white text-sm mb-3 px-3 py-2 rounded h-16 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Physical description..."
+                    readOnly
+                  />
+                  <textarea
+                    value={character.Personality}
+                    className="w-full bg-white/5 border border-white/20 text-white text-sm px-3 py-2 rounded h-16 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Personality traits..."
+                    readOnly
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Scenes */}
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Film className="w-5 h-5 mr-2 text-green-400" />
-                Scenes ({storyData.Scenes.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {storyData.Scenes.map((scene, index) => (
-                  <div key={index} className="p-4 bg-white/5 rounded-lg">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-32 h-20 bg-gray-600 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
-                        {sceneImages[scene.Scene] ? (
-                          <Image
-                            src={sceneImages[scene.Scene] || "/placeholder.svg"}
-                            alt={`Scene ${scene.Scene}`}
-                            width={128}
-                            height={80}
-                            className="w-full h-full object-cover"
-                            unoptimized={sceneImages[scene.Scene].startsWith("data:")}
-                          />
-                        ) : (
-                          <span className="text-gray-400 text-xs text-center">Scene {scene.Scene}</span>
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-white font-semibold">Scene {scene.Scene}</span>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6">
+            <div className="flex items-center text-white mb-6">
+              <Film className="w-5 h-5 mr-2 text-green-400" />
+              <h2 className="text-xl font-semibold">Scenes ({storyData.Scenes.length})</h2>
+            </div>
+            <div className="space-y-6">
+              {storyData.Scenes.map((scene, index) => (
+                <div key={index} className="bg-white/5 rounded-lg p-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-32 h-20 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {sceneImages[scene.Scene] ? (
+                        <Image
+                          src={sceneImages[scene.Scene] || "/placeholder.svg"}
+                          alt={`Scene ${scene.Scene}`}
+                          width={128}
+                          height={80}
+                          className="w-full h-full object-cover"
+                          unoptimized={sceneImages[scene.Scene].startsWith("data:")}
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <span className="text-gray-400 text-xs block mb-1">Scene {scene.Scene}</span>
+                          <button
+                            onClick={() => generateSingleSceneImage(scene)}
+                            disabled={isGeneratingImages || !!generationProgress}
+                            className="text-xs px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+                          >
+                            Generate
+                          </button>
                         </div>
-                        <Textarea
-                          value={scene.Description}
-                          onChange={(e) => updateScene(index, "Description", e.target.value)}
-                          className="bg-white/5 border-white/20 text-white text-sm"
-                          placeholder="Scene description..."
-                          rows={2}
-                        />
-                        <Textarea
-                          value={scene.Dialogue}
-                          onChange={(e) => updateScene(index, "Dialogue", e.target.value)}
-                          className="bg-white/5 border-white/20 text-white text-sm"
-                          placeholder="Dialogue..."
-                          rows={2}
-                        />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center">
+                        <span className="text-white font-semibold">Scene {scene.Scene}</span>
                       </div>
+                      <textarea
+                        value={scene.Description}
+                        className="w-full bg-white/5 border border-white/20 text-white text-sm px-3 py-2 rounded h-16 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Scene description..."
+                        readOnly
+                      />
+                      <textarea
+                        value={scene.Dialogue}
+                        className="w-full bg-white/5 border border-white/20 text-white text-sm px-3 py-2 rounded h-16 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Dialogue..."
+                        readOnly
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

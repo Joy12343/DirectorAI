@@ -6,9 +6,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Story to Video - AI-Powered Cinematic Creation",
-  description:
-    "Transform your stories into cinematic videos with AI. From text to screenplay, characters to scenes, and finally to a complete video production.",
+  title: "Story to Video",
+  description: "Transform stories into videos with AI",
 }
 
 export default function RootLayout({

@@ -8,17 +8,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Description is required" }, { status: 400 })
     }
 
-    // Use port 5001 for image service (not 5000)
+    // Try to connect to your image service
     const imageServiceUrl = process.env.IMAGE_SERVICE_URL || "http://localhost:5001"
 
-    console.log(`Calling image service at: ${imageServiceUrl}/api/image`)
+    console.log(`🖼️ Calling image service at: ${imageServiceUrl}/api/image`)
+    console.log(`📝 Description: ${description.substring(0, 100)}...`)
 
-    // Create timeout controller manually for compatibility
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
 
     try {
-      // Call your Flask image service
       const response = await fetch(`${imageServiceUrl}/api/image`, {
         method: "POST",
         headers: {
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
         signal: controller.signal,
       })
 
-      clearTimeout(timeoutId) // Clear timeout if request completes
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -37,9 +36,13 @@ export async function POST(request: NextRequest) {
       }
 
       const imageData = await response.json()
-      console.log("Image generated successfully")
+      console.log("✅ Image generated successfully")
 
-      return NextResponse.json(imageData)
+      return NextResponse.json({
+        base64_image: imageData.base64_image,
+        success: true,
+        type: imageData.type || "ai_generated",
+      })
     } catch (fetchError) {
       clearTimeout(timeoutId)
       throw fetchError
@@ -47,16 +50,19 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error generating image:", error)
 
-    // Check if it's a timeout or connection error
-    if (error instanceof Error && error.name === "AbortError") {
-      return NextResponse.json({ error: "Image generation timed out. Please try again." }, { status: 408 })
-    }
-
+    // Check if it's a connection error
     if (error instanceof Error && error.message.includes("ECONNREFUSED")) {
       return NextResponse.json(
-        { error: "Image service is not running. Please start the backend services." },
+        {
+          error: "Image service is not running. Please start the backend services.",
+          details: "Run: python component/image_app.py",
+        },
         { status: 503 },
       )
+    }
+
+    if (error instanceof Error && error.name === "AbortError") {
+      return NextResponse.json({ error: "Image generation timed out. Please try again." }, { status: 408 })
     }
 
     return NextResponse.json(
