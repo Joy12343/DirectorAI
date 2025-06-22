@@ -34,6 +34,17 @@ export default function EditPage() {
   const [generationLog, setGenerationLog] = useState<string[]>([])
   const router = useRouter()
 
+  async function uploadToCloudinary(imageBase64: string): Promise<string> {
+    const res = await fetch('/api/cloudinary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64 })
+    })
+    if (!res.ok) throw new Error('Upload failed: ' + res.statusText)
+    const { url } = await res.json()
+    return url
+  }
+
   useEffect(() => {
     const data = localStorage.getItem("storyData")
     if (data) {
@@ -181,11 +192,29 @@ export default function EditPage() {
     setGenerationProgress("")
   }
 
-  const proceedToFrames = () => {
-    // Save images to localStorage for the frames page
-    localStorage.setItem("characterImages", JSON.stringify(characterImages))
-    localStorage.setItem("sceneImages", JSON.stringify(sceneImages))
-    router.push("/frames")
+  const proceedToFrames = async () => {
+    try {
+      const charArr  = Object.values(characterImages);
+      const sceneArr = Object.values(sceneImages);
+      // 1. upload all characterImages in parallel
+      const characterUrls = await Promise.all(
+        charArr.map(img => uploadToCloudinary(img))
+      )
+      // 2. upload all sceneImages in parallel
+      const sceneUrls = await Promise.all(
+        sceneArr.map(img => uploadToCloudinary(img))
+      )
+
+      // 3. now store only the URLs in localStorage
+      localStorage.setItem('characterImages', JSON.stringify(characterUrls))
+      localStorage.setItem('sceneImages',     JSON.stringify(sceneUrls))
+
+      // 4. navigate
+      router.push('/frames')
+    } catch (err) {
+      console.error('🚨 uploading to Cloudinary failed', err)
+      // you can show an error UI here if you like
+    }
   }
 
   if (!storyData) {

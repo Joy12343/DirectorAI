@@ -37,30 +37,71 @@ export default function FramesPage() {
 
   const generateVideo = async () => {
     setIsGeneratingVideo(true)
-
     try {
-      // Simulate video generation for each scene
+      const videoUrls: string[] = []
       for (let i = 0; i < scenes.length; i++) {
         setCurrentFrame(i)
         const scene = scenes[i]
         const imageUrl = sceneImages[scene.Scene]
+        const prompt = scene.Description
 
-        console.log(`🎬 Processing Scene ${scene.Scene}`)
-        console.log(`📝 Description: ${scene.Description}`)
-        console.log(`📸 Has Image: ${!!imageUrl}`)
+        if (!imageUrl) {
+          console.error(`No image for scene ${scene.Scene}`)
+          continue
+        }
 
-        // Simulate processing time
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+        // Call backend to generate video for this scene
+        const response = await fetch("/api/generate-video", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            imageUrl,
+            aspectRatio: "16:9",
+          }),
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error(`Failed to generate video for scene ${scene.Scene}:`, errorText)
+          continue
+        }
+
+        const data = await response.json()
+        if (data.videoUrl) {
+          videoUrls.push(data.videoUrl)
+        } else {
+          console.error(`No video URL returned for scene ${scene.Scene}`)
+        }
       }
 
-      // For demo purposes, use a sample video URL
-      const videoUrl = "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4"
-      localStorage.setItem("videoUrl", videoUrl)
+      // If only one video, use it; if multiple, call compile endpoint
+      let finalVideoUrl = videoUrls[0] || ""
+      if (videoUrls.length > 1) {
+        // Call backend to compile videos
+        const compileRes = await fetch("/api/compile-videos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ video_urls: videoUrls }),
+        })
+        if (compileRes.ok) {
+          const compileData = await compileRes.json()
+          finalVideoUrl = compileData.compiled_video_url || finalVideoUrl
+        } else {
+          const errorText = await compileRes.text()
+          console.error("Failed to compile videos:", errorText)
+        }
+      }
 
-      console.log("✅ Video generation complete!")
-      router.push("/video")
+      if (finalVideoUrl) {
+        localStorage.setItem("videoUrl", finalVideoUrl)
+        router.push("/video")
+      } else {
+        throw new Error("No video was generated.")
+      }
     } catch (error) {
       console.error("Error generating video:", error)
+      // Optionally show error to user
     } finally {
       setIsGeneratingVideo(false)
     }

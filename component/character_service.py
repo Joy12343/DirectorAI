@@ -11,7 +11,7 @@ CORS(character_app)
 
 @character_app.route("/", methods=["GET"])
 def health_check():
-    return jsonify({"status": "Character service is running", "port": 5002})
+    return jsonify({"status": "Character service is running", "port": 5003})
 
 @character_app.route("/api/character", methods=["POST"])
 def generate_character_api():
@@ -26,13 +26,13 @@ def generate_character_api():
 
         # Generate character image
         image_path = generate_character_image(character_data, "character_images")
-        
+
         if image_path and os.path.exists(image_path):
             # Read and encode the image
             import base64
             with open(image_path, "rb") as image_file:
                 encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-            
+
             return jsonify({
                 "base64_image": encoded_image,
                 "image_path": image_path
@@ -45,5 +45,5 @@ def generate_character_api():
         return jsonify({"error": "An internal server error occurred."}), 500
 
 if __name__ == "__main__":
-    print("Starting Character Service on port 5002...")
-    character_app.run(debug=True, port=5002)
+    print("Starting Character Service on port 5003...")
+    character_app.run(debug=True, port=5003)

@@ -1,6 +1,6 @@
 # Development startup script
 echo "🚀 Starting Story-to-Video Development Environment"
-
+cd "$(dirname "$0")/.."
 # Check if .env file exists
 if [ ! -f .env ]; then
     echo "❌ .env file not found!"
@@ -19,9 +19,13 @@ echo "📡 Starting Flask backend services..."
 python component/writer_app.py &
 WRITER_PID=$!
 
-# Start image service  
+# Start image service
 python component/image_app.py &
 IMAGE_PID=$!
+
+# Start video service
+python component/video_app.py &
+VIDEO_PID=$!
 
 # Wait for services to start
 sleep 3
@@ -35,13 +39,13 @@ echo "✅ All services started!"
 echo "Frontend: http://localhost:3000"
 echo "Writer API: http://localhost:5000"
 echo "Image API: http://localhost:5001"
-echo ""
+echo "Video API: https//localhost:5002"
 echo "Press Ctrl+C to stop all services"
 
 # Function to cleanup on exit
 cleanup() {
     echo "🛑 Stopping all services..."
-    kill $WRITER_PID $IMAGE_PID $FRONTEND_PID 2>/dev/null
+    kill $WRITER_PID $IMAGE_PID $VIDEO_PID $FRONTEND_PID 2>/dev/null
     exit 0
 }
 
