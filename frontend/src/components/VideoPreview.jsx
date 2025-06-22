@@ -8,6 +8,7 @@ import {
   regenerateScene,
   mergeSceneVideos,
 } from '../utils/api';
+import { Button } from "@/components/ui/button";
 
 export default function VideoPreview() {
   const [scenes, setScenes] = useState([]);
@@ -59,18 +60,19 @@ export default function VideoPreview() {
     setBusyIdx(index);
 
     try {
-        const clipURL = await generateSceneClip(sc.image, sc.dialogue);
-        updateScene(index, {
-            accepted: true,
-            video: clipURL,
-            image: null,  // 用视频替掉图片
-        });
+      const clipURL = await generateSceneClip(sc.image, sc.dialogue);
+      updateScene(index, {
+        accepted: true,
+        video: clipURL,
+        image: null,  // 用视频替掉图片
+      });
     } catch (err) {
-        console.error('generateSceneClip failed:', err);
-        alert('生成视频片段出错，请重试');
+      console.error('generateSceneClip failed:', err);
+      alert('生成视频片段出错，请重试');
     } finally {
-        setBusyIdx(null);              // **保证一定重置 busyIdx**
+      setBusyIdx(null);              // **保证一定重置 busyIdx**
     }
+
     // // 生成视频片段：image + dialogue
     // const clipBlob = await generateSceneClip(sc.image, sc.dialogue);
     // const clipURL = URL.createObjectURL(clipBlob);
@@ -113,9 +115,6 @@ export default function VideoPreview() {
     //    window.open(finalURL);
     // */
 
-
-    
-
     //模拟
     setMerging(true);
     const clips = scenes.map((s) => s.video); // 顺序保证
@@ -128,11 +127,13 @@ export default function VideoPreview() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-4">
-      <h1 className="text-3xl font-bold mb-6">Story Preview</h1>
+    <div className="max-w-3xl mx-auto mt-10 px-4">
+      <h1 className="text-4xl font-bold text-center mb-8">🎞️ Story Preview</h1>
 
       {scenes.length === 0 && (
-        <p className="text-gray-600">No scenes found. Go back and generate a story.</p>
+        <p className="text-muted-foreground text-center">
+          No scenes found. Please go back and generate a story.
+        </p>
       )}
 
       {scenes.map((scene, idx) => (
@@ -147,21 +148,25 @@ export default function VideoPreview() {
       ))}
 
       {busyIdx !== null && (
-        <p className="text-center text-gray-500">
+        <p className="text-center text-sm text-gray-500 mt-4">
           Processing scene {busyIdx + 1}...
         </p>
       )}
 
       {allDone && (
-        <button
-          className="block mx-auto mt-8 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-          onClick={handleMerge}
-          disabled={merging}
-        >
-          {merging ? 'Merging...' : '生成最终视频 🎬'}
-        </button>
+        <div className="text-center mt-10">
+          <Button
+            variant="default"
+            className="px-6 py-3 text-lg"
+            onClick={handleMerge}
+            disabled={merging}
+          >
+            {merging ? 'Merging...' : '🎬 生成最终视频'}
+          </Button>
+        </div>
       )}
     </div>
   );
 }
+
 
