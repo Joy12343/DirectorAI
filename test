@@ -1,0 +1,5 @@
+
+curl --request GET \
+--url https://api.lumalabs.ai/dream-machine/v1/generations/c40198c2-b17a-4d92-921c-7d802888ed6c \
+--header 'accept: application/json' \
+--header 'authorization: Bearer luma-f2536be4-f5e4-434c-97e2-33be99dbbdbd-92fbc09c-0b28-40ca-b9aa-7410f368f116'

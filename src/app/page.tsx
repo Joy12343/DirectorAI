@@ -1,11 +1,10 @@
-// app/page.tsx
-import VeoTester from '@/components/VeoTester'
+import Base64Uploader from '@/components/uploadTester';
 
-export default function Home() {
+export default function UploadTesterPage() {
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold mb-4">AI Video Generator</h1>
-      <VeoTester />
+    <main style={{ padding: '2rem' }}>
+      <h1>🧪 Upload Test: Base64 to Cloudinary</h1>
+      <Base64Uploader />
     </main>
-  )
+  );
 }
