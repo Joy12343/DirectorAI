@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import anthropic
+from dotenv import load_dotenv
 
 class SceneGenerator:
     def __init__(
@@ -104,7 +105,8 @@ class SceneGenerator:
 
 if __name__ == "__main__":
     # Retrieve the API key from an environment variable
-    api_key = os.getenv("ANTHROPIC_API_KEY", "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")
+    load_dotenv()
+    api_key = os.getenv("ANTHROPIC_API_KEY")
     story_text = sys.stdin.read().strip()
 
     generator = SceneGenerator(api_key=api_key)

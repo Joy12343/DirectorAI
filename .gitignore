@@ -43,5 +43,9 @@ next-env.d.ts
 
 character_images/
 scene_images/
+resized_scenes/
 story_elements.json
+scene_urls.json
 __pycache__/
+
+.env

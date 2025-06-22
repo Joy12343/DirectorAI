@@ -4,9 +4,11 @@ from google import genai
 from google.genai import types
 from PIL import Image
 from io import BytesIO
+from dotenv import load_dotenv
 
+load_dotenv()
 
-GEMINI_API_KEY = "AIzaSyBN8P38DQfSmcn0CW0ZGNYDuHLrR1ub0uc"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 def load_story_elements(json_file="/Users/chengyibo/hackathon/src/app/api/story_elements.json"):
@@ -121,7 +123,7 @@ Quality: High resolution, detailed, professional cinematography
 
 The scene should look like a professional movie still or storyboard frame. The image should capture the beginning of the scene. Don't put any text on the image. The outfit of the characters should be consistent throughout the scene, especially the clothes color.
 
-IMPORTANT: Reference the character images provided to maintain exact clothing consistency. Do not deviate from the character appearances shown in the reference images.
+IMPORTANT: Reference the character images provided to maintain exact clothing consistency. Do not deviate from the character appearances shown in the reference images. Generate all pictures in the AspectRatio of 16:9
 """
 
     try:
@@ -141,8 +143,8 @@ IMPORTANT: Reference the character images provided to maintain exact clothing co
             model="gemini-2.0-flash-preview-image-generation",
             contents=content_parts,
             config=types.GenerateContentConfig(
-                response_modalities=['TEXT', 'IMAGE']
-            )
+                response_modalities=['TEXT', 'IMAGE'],
+            ),
         )
 
         # Process the response

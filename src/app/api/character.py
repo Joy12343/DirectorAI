@@ -4,8 +4,12 @@ from google import genai
 from google.genai import types
 from PIL import Image
 from io import BytesIO
+from dotenv import load_dotenv
 
-GEMINI_API_KEY = "AIzaSyBN8P38DQfSmcn0CW0ZGNYDuHLrR1ub0uc"
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
