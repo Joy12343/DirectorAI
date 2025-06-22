@@ -1,6 +1,41 @@
 import argparse
 import os
-from scene_picture import generate_all_scene_images, generate_scene_image, load_story_elements, load_character_images
+from typing import List, Dict
+
+
+# from scene_picture import generate_all_scene_images, generate_scene_image, load_story_elements, load_character_images
+from api.scene_picture import (
+    generate_all_scene_images,
+    generate_scene_image,
+    load_story_elements,
+    load_character_images,
+)
+
+def generate_scenes(story: str) -> List[Dict]:
+    """
+    Return mock scene data for the given story string.
+    Replace this with real LLM / image logic later.
+    """
+    return [
+        {
+            "scene": 1,
+            "description": "A girl runs through a field of sunflowers",
+            "dialogue": "This is where my story begins...",
+            "mood": "hopeful",
+        },
+        {
+            "scene": 2,
+            "description": "The sky turns dark as thunder rolls in",
+            "dialogue": "But storms don’t scare me anymore.",
+            "mood": "resilient",
+        },
+        {
+            "scene": 3,
+            "description": "Sunlight breaks through the clouds at dawn",
+            "dialogue": "Every ending is a new beginning.",
+            "mood": "uplifting",
+        },
+    ]
 
 def main():
     parser = argparse.ArgumentParser(description='Generate scene images from story elements')
