@@ -30,18 +30,6 @@ def create_cinematic_prompt(scene_description: str, scene_number: int, previous_
     # Analyze scene description for motion cues
     description_lower = scene_description.lower()
     
-    # Enhanced basketball motion with object persistence
-    if any(word in description_lower for word in ['dribble', 'bounce', 'ball']):
-        motion_keywords.extend([
-            "natural basketball motion",
-            "fluid dribbling movement",
-            "realistic ball physics",
-            "smooth hand-eye coordination",
-            "ball remains visible throughout motion",
-            "consistent ball position and movement",
-            "realistic ball bounce and trajectory",
-            "ball follows natural physics laws"
-        ])
     
     if any(word in description_lower for word in ['run', 'chase', 'drive']):
         motion_keywords.extend([
@@ -51,27 +39,6 @@ def create_cinematic_prompt(scene_description: str, scene_number: int, previous_
             "dynamic body mechanics",
             "consistent character positioning",
             "smooth transition between movements"
-        ])
-    
-    if any(word in description_lower for word in ['shot', 'throw', 'pass']):
-        motion_keywords.extend([
-            "natural shooting motion",
-            "realistic arm movement",
-            "fluid release action",
-            "authentic sports motion",
-            "ball follows realistic arc",
-            "consistent ball trajectory",
-            "natural follow-through motion"
-        ])
-    
-    if any(word in description_lower for word in ['defend', 'block', 'steal']):
-        motion_keywords.extend([
-            "natural defensive motion",
-            "realistic reaction time",
-            "fluid defensive movement",
-            "authentic sports positioning",
-            "consistent defensive stance",
-            "realistic reach and timing"
         ])
     
     if any(word in description_lower for word in ['close-up', 'face', 'expression']):
@@ -132,10 +99,6 @@ Camera: {camera_motion}
 Lighting: {lighting_motion}
 
 CRITICAL OBJECT PERSISTENCE RULES:
-- Basketball must remain visible throughout the entire motion
-- Ball cannot disappear, fade out, or teleport
-- Maintain consistent ball size and appearance
-- Ball must follow realistic physics and trajectory
 - All objects must maintain their physical presence
 - No objects should suddenly appear or disappear
 - Maintain consistent object positioning and movement

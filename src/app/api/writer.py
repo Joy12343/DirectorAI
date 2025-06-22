@@ -61,110 +61,26 @@ class SceneGenerator:
             "Be very descriptive. Include camera shots (wide shot, close-up), lighting (dramatic lighting, golden hour), "
             "style (film noir, anime), and mood (ominous, serene). Determine the appropriate number of characters based on the story and keep each scenes under 5 seconds. "
             "Create a seamless, flowing narrative where each scene feels like a natural continuation of the story, not isolated moments."
+            # "You are a screenwriter. The user is going to input a short text description. "
+            # "Break the user's story into a concise list of cinematic scenes, and provide background and character information. " 
+            # "Very Very Important:  Avoid sudden location changes without clear narrative reason. "
+            # "For example, instead of in scene one, he was on basketball court and scene two he was on football court, we want a transition as he walked from the basketball court to the soccer court" 
+            # " Return ONLY valid JSON, no markdown, no commentary.\n\n"
+            # " The JSON structure MUST have:\n"
+            # "- Background: A detailed description of the general setting, real life or fantasy, time period, atmosphere, and world where the story takes place\n"
+            # "- Characters: An array of character objects, each with:\n"
+            # "  * Name: Character's name\n"
+            # "  * Description: Physical appearance, age, clothing style, distinguishing features\n"
+            # "  * Personality: Brief personality traits and mannerisms\n"
+            # "  * Role: Their role in the story (protagonist, antagonist, supporting, etc.)\n"
+            # "- Scenes: An array of scene objects, each with:\n"
+            # "  * Scene: an index describing the order\n"
+            # "  * Description: around 20 to 30 words describing visuals, including camera shots, lighting, style, and mood\n"
+            # " Again, please make sure each scene is connected, and there's clear description of the character's and camera's movement"
+            # "  * Dialogue: Possible dialogue between characters as required\n\n"
+            
+            # " Keep each scenes under 5 seconds"
         )
-
-    def validate_scene_coherence(self, story_elements):
-        """
-        Validate and enhance scene coherence to ensure smooth transitions.
-        
-        :param story_elements: Dictionary containing story elements
-        :return: Enhanced story elements with improved coherence
-        """
-        if not story_elements or 'Scenes' not in story_elements:
-            return story_elements
-        
-        scenes = story_elements['Scenes']
-        if len(scenes) < 2:
-            return story_elements
-        
-        print("🔍 Validating scene coherence...")
-        
-        # Analyze and enhance scene transitions
-        for i in range(len(scenes) - 1):
-            current_scene = scenes[i]
-            next_scene = scenes[i + 1]
-            
-            current_desc = current_scene.get('Description', '').lower()
-            next_desc = next_scene.get('Description', '').lower()
-            
-            # Check for potential coherence issues
-            coherence_issues = []
-            
-            # Check for sudden location changes
-            if 'court' in current_desc and 'court' not in next_desc:
-                coherence_issues.append("Location continuity")
-            
-            # Check for character positioning
-            if 'close-up' in current_desc and 'wide shot' in next_desc:
-                coherence_issues.append("Camera transition")
-            
-            # Check for object continuity (basketball)
-            if 'ball' in current_desc and 'ball' not in next_desc:
-                coherence_issues.append("Object continuity")
-            
-            if coherence_issues:
-                print(f"⚠️ Scene {i+1} to {i+2}: Potential coherence issues - {', '.join(coherence_issues)}")
-                
-                # Enhance the next scene description for better coherence
-                enhanced_description = self.enhance_scene_coherence(
-                    current_scene, next_scene, coherence_issues
-                )
-                next_scene['Description'] = enhanced_description
-                print(f"✅ Enhanced Scene {i+2} for better coherence")
-        
-        print("✅ Scene coherence validation complete")
-        return story_elements
-    
-    def enhance_scene_coherence(self, current_scene, next_scene, issues):
-        """
-        Enhance scene description to improve coherence with previous scene.
-        
-        :param current_scene: Previous scene information
-        :param next_scene: Current scene to enhance
-        :param issues: List of coherence issues
-        :return: Enhanced scene description
-        """
-        current_desc = current_scene.get('Description', '')
-        next_desc = next_scene.get('Description', '')
-        
-        # Extract key elements from current scene
-        current_elements = {
-            'location': 'court' if 'court' in current_desc.lower() else None,
-            'camera': 'close-up' if 'close-up' in current_desc.lower() else 'wide shot' if 'wide shot' in current_desc.lower() else None,
-            'objects': 'ball' if 'ball' in current_desc.lower() else None,
-            'lighting': 'dramatic' if 'dramatic' in current_desc.lower() else 'golden hour' if 'golden hour' in current_desc.lower() else None
-        }
-        
-        # Enhance next scene description
-        enhanced_parts = []
-        
-        # Maintain location continuity
-        if 'Location continuity' in issues and current_elements['location']:
-            if 'court' not in next_desc.lower():
-                enhanced_parts.append(f"on the same {current_elements['location']}")
-        
-        # Maintain camera continuity
-        if 'Camera transition' in issues and current_elements['camera']:
-            if current_elements['camera'] == 'close-up':
-                enhanced_parts.append("continuing from close-up")
-            elif current_elements['camera'] == 'wide shot':
-                enhanced_parts.append("maintaining wide perspective")
-        
-        # Maintain object continuity
-        if 'Object continuity' in issues and current_elements['objects']:
-            if 'ball' not in next_desc.lower():
-                enhanced_parts.append(f"with {current_elements['objects']} still in play")
-        
-        # Maintain lighting continuity
-        if current_elements['lighting'] and current_elements['lighting'] not in next_desc.lower():
-            enhanced_parts.append(f"{current_elements['lighting']} lighting continues")
-        
-        # Combine enhanced description
-        if enhanced_parts:
-            enhanced_desc = f"{next_desc} - {', '.join(enhanced_parts)}"
-            return enhanced_desc
-        
-        return next_desc
 
     def generate_story_elements(self, story_text):
         """
@@ -214,8 +130,6 @@ class SceneGenerator:
                 
             story_elements = json.loads(raw_text)
             
-            # Validate and enhance scene coherence
-            story_elements = self.validate_scene_coherence(story_elements)
             
             return story_elements
         except json.JSONDecodeError as e:
