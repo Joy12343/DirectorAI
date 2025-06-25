@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Inspiration
+As AI-generated content floods social media, we were struck by how often these videos fail to tell a coherent story: Scenes jump erratically, Characters teleport, and plots unravel after just a quick seconds. At the same time, as avid fans of movies and TV shows, we often ask “what if?” - picturing scenes that have never been filmed. In this project, we aim to build an AI that could direct a “micro-film” with the narrative flow and emotional continuity of a human storyteller, and turn every “What if?” into a vivid reality. Not only were we intrigued by the creative potential, but we also left room for the users to unleash their creativity by freely adding, removing, and modifying every scene in the film.
 
-## Getting Started
+## How We Built It: Core Ideas
+That’s why we built DirectorAI, an AI pipeline that transforms a single text prompt into a short film, complete with character, plot, environment, and sound. The system is structured as four major components:
 
-First, run the development server:
+1. Script Builder: Expands a prompt into a concrete, multi-scene screenplay with environment details, character profiles, and dialogue. We designed this module to mimic how human writers sketch out a story.
+2. Character & Scene Renderer: Generates reference portraits for each character for consistency and a key visual frame for every scene, resized to the appropriate size for the next step
+3. Video Composer: Generates a video of each scene based on the key visual frame
+4. Audio & Integration Engine: Extracts dialogue or sound cues from the script, generates matching voice or sound effects, and merges them with visuals for the final output.
+If the results are non-satisfactory, we provide options for users to
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Regenerate a scene by changing the scene description or key figure
+1. Insert an interpolated transition frame, crafted to follow the preceding scene naturally to smooth out awkward transitions.
+2. Users can iterate on either option until satisfied.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Challenges We Faced
+The biggest challenge was temporal coherence—ensuring that character positions, camera angles, and scene flow felt natural across shots. For example, humans could intuitively understand that Michael walked from a roller-coaster to a carousel, but AI skips the journey entirely, and Michael will somehow disappear from the roller-coaster and teleport to a carousel. We tackled this by:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Introducing cinematic shot types (wide, medium, close) into the script
+2. Designing detailed prompt engineering that guides the continuity of scene generation
+3. Allowing user-inserted interpolation frames for manual refinement
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Also, integrating all the parts - scripts, images, video, sounds, i.e., multiple APIs - into one frontend/backend system proved unexpectedly complex. Debugging handoffs between modules became a technical challenge.
 
-## Learn More
+## Conclusion & Takeaways
+What began as a simple idea—a better way to generate AI videos—evolved into a platform that captures the essence of cinematic storytelling through AI. We learned that directing with AI isn't just about generating pretty images. It's about rhythm, structure, and the invisible threads that tie one scene to the next. There’s still a long way to go before AI can match a human director’s intuition, but this project showed us how much potential lies ahead. With each iteration, the line between human storytelling and AI assistance gets thinner. We hope Director AI can be a small step toward democratizing the art of filmmaking. Thanks for all the suggestions and feedback!
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
